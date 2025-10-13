@@ -74,13 +74,20 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
-                                //.requestMatchers("/api/admin/**").permitAll()
+                                .requestMatchers("/api/admin/**").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()   // login/register allow
+                                .requestMatchers("/images/**").permitAll()  // images ke liye bhi
+                                //.requestMatchers("/api/admin/**").hasRole("ROLE_ADMIN")
+                              //  .requestMatchers("/api/seller/**").hasAnyRole("ADMIN","SELLER")
+                                //.requestMatchers("/api/admin/**").authenticated() // abhi yeh JWT mangta hai
+                                .requestMatchers("/api/addresses/**").permitAll()   // ✅ yaha allow kiya
                                 .requestMatchers("/api/public/**").permitAll()//this is for the testing 
                                 .requestMatchers("/swagger-ui/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
@@ -89,8 +96,8 @@ public class WebSecurityConfig {
                 );
 
         http.authenticationProvider(authenticationProvider());
-
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+//    // ⚠️ Agar testing me JWT bilkul use nahi karna, to ye line comment kar do:
+     //   http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         http.headers(headers -> headers.frameOptions(
                 frameOptions -> frameOptions.sameOrigin()));
 
